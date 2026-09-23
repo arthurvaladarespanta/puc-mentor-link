@@ -92,7 +92,16 @@ function Perfil() {
       setErros({ geral: "Não deu para enviar a foto. Use JPG ou PNG de até 5 MB." });
       return;
     }
-    await supabase.from("perfis").update({ foto_url: caminho }).eq("id", uid);
+    const { data: perfilAnterior } = await supabase.from("perfis").select("foto_url").eq("id", uid).maybeSingle();
+    const { error: erroPerfil } = await supabase.from("perfis").update({ foto_url: caminho }).eq("id", uid);
+    if (erroPerfil) {
+      await supabase.storage.from("fotos-perfil").remove([caminho]);
+      setErros({ geral: "A foto foi enviada, mas não conseguimos atualizar o perfil. Tente de novo." });
+      return;
+    }
+    if (perfilAnterior?.foto_url && perfilAnterior.foto_url !== caminho) {
+      await supabase.storage.from("fotos-perfil").remove([perfilAnterior.foto_url]);
+    }
     setFoto(await urlDaFoto(caminho));
   }
 
@@ -118,11 +127,27 @@ function Perfil() {
       })
       .eq("id", uid);
 
-    await supabase.from("usuario_materias").delete().eq("usuario_id", uid);
+    if (erroPerfil) {
+      setSalvando(false);
+      setErros({ geral: "Não foi possível salvar o perfil. Confira sua conexão e tente de novo." });
+      return;
+    }
+
+    const { error: erroRemocaoMaterias } = await supabase.from("usuario_materias").delete().eq("usuario_id", uid);
+    if (erroRemocaoMaterias) {
+      setSalvando(false);
+      setErros({ materias: "Não foi possível atualizar suas matérias. Tente de novo." });
+      return;
+    }
     if (materias.length > 0) {
-      await supabase
+      const { error: erroMaterias } = await supabase
         .from("usuario_materias")
         .insert(materias.map((m) => ({ usuario_id: uid, materia_id: m.id })));
+      if (erroMaterias) {
+        setSalvando(false);
+        setErros({ materias: "Não foi possível atualizar suas matérias. Escolha novamente e tente de novo." });
+        return;
+      }
     }
 
     if (email.trim() !== emailOriginal) {
@@ -137,10 +162,7 @@ function Perfil() {
     }
 
     if (trocandoSenha && novaSenha) {
-      const { error } = await supabase.auth.updateUser({
-        password: novaSenha,
-        ...(senhaAtual ? { current_password: senhaAtual } : {}),
-      } as { password: string });
+      const { error } = await supabase.auth.updateUser({ password: novaSenha });
       if (error) {
         setErros({ senha: traduzirErroAuth(error, "senha") });
         setSalvando(false);
@@ -152,10 +174,6 @@ function Perfil() {
     }
 
     setSalvando(false);
-    if (erroPerfil) {
-      setErros({ geral: "Não deu para salvar agora. Tente de novo em instantes." });
-      return;
-    }
     setSucesso(true);
   }
 

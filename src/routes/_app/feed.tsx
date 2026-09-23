@@ -45,18 +45,20 @@ function Feed() {
     if (!userId) return;
     setUid(userId);
     const agora = new Date().toISOString();
-    const [{ data: dadosAulas }, { data: vinculos }, { data: minhas }, { data: todasInscricoes }] = await Promise.all([
+    const [{ data: dadosAulas }, { data: vinculos }, { data: minhas }] = await Promise.all([
       supabase.from("aulas").select("id,tutor_id,descricao,preco,max_alunos,local,modo,selo,created_at,materias(id,nome),perfis!aulas_tutor_id_fkey(nome,foto_url),aula_horarios(id,inicio,duracao_minutos)").is("apagada_em", null).gt("aula_horarios.inicio", agora).order("created_at", { ascending: false }),
       supabase.from("usuario_materias").select("materias(id,nome)").eq("usuario_id", userId),
       supabase.from("inscricoes").select("aula_id,conversas!inner(id)").eq("aluno_id", userId).is("cancelada_em", null),
-      supabase.from("inscricoes").select("horario_id").is("cancelada_em", null),
     ]);
-    setAulas(((dadosAulas ?? []) as unknown as Aula[]).filter((a) => a.aula_horarios.length));
+    const aulasValidas = ((dadosAulas ?? []) as unknown as Aula[]).filter((a) => a.aula_horarios.length);
+    setAulas(aulasValidas);
     setInteresses((vinculos ?? []).map((v) => v.materias).filter(Boolean) as unknown as { id: string; nome: string }[]);
     setInscricoes(Object.fromEntries((minhas ?? []).map((i) => [i.aula_id, (i.conversas as unknown as { id: string }[])?.[0]?.id ?? ""])));
-    const contagem: Record<string, number> = {};
-    (todasInscricoes ?? []).forEach((i) => { contagem[i.horario_id] = (contagem[i.horario_id] ?? 0) + 1; });
-    setOcupacao(contagem);
+    const idsHorarios = aulasValidas.flatMap((a) => a.aula_horarios.map((h) => h.id));
+    if (idsHorarios.length) {
+      const { data: contagens } = await supabase.from("aula_horario_ocupacao").select("horario_id,quantidade").in("horario_id", idsHorarios);
+      setOcupacao(Object.fromEntries((contagens ?? []).map((item) => [item.horario_id, item.quantidade])));
+    } else setOcupacao({});
     setCarregando(false);
   }
 
