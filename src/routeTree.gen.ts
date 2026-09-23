@@ -21,6 +21,7 @@ import { Route as AppConversasRouteImport } from './routes/_app/conversas'
 import { Route as AppCriarAulaRouteImport } from './routes/_app/criar-aula'
 import { Route as AppFeedRouteImport } from './routes/_app/feed'
 import { Route as AppPerfilRouteImport } from './routes/_app/perfil'
+import { Route as AppConversasConversaIdRouteImport } from './routes/_app/conversas.$conversaId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -81,6 +82,11 @@ const AppPerfilRoute = AppPerfilRouteImport.update({
   path: '/perfil',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const AppConversasConversaIdRoute = AppConversasConversaIdRouteImport.update({
+  id: '/$conversaId',
+  path: '/$conversaId',
+  getParentRoute: () => AppConversasRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -90,10 +96,11 @@ export interface FileRoutesByFullPath {
   '/esqueci-senha': typeof EsqueciSenhaRoute
   '/nova-senha': typeof NovaSenhaRoute
   '/aulas': typeof AppAulasRoute
-  '/conversas': typeof AppConversasRoute
+  '/conversas': typeof AppConversasRouteWithChildren
   '/criar-aula': typeof AppCriarAulaRoute
   '/feed': typeof AppFeedRoute
   '/perfil': typeof AppPerfilRoute
+  '/conversas/$conversaId': typeof AppConversasConversaIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -103,10 +110,11 @@ export interface FileRoutesByTo {
   '/esqueci-senha': typeof EsqueciSenhaRoute
   '/nova-senha': typeof NovaSenhaRoute
   '/aulas': typeof AppAulasRoute
-  '/conversas': typeof AppConversasRoute
+  '/conversas': typeof AppConversasRouteWithChildren
   '/criar-aula': typeof AppCriarAulaRoute
   '/feed': typeof AppFeedRoute
   '/perfil': typeof AppPerfilRoute
+  '/conversas/$conversaId': typeof AppConversasConversaIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -118,10 +126,11 @@ export interface FileRoutesById {
   '/esqueci-senha': typeof EsqueciSenhaRoute
   '/nova-senha': typeof NovaSenhaRoute
   '/_app/aulas': typeof AppAulasRoute
-  '/_app/conversas': typeof AppConversasRoute
+  '/_app/conversas': typeof AppConversasRouteWithChildren
   '/_app/criar-aula': typeof AppCriarAulaRoute
   '/_app/feed': typeof AppFeedRoute
   '/_app/perfil': typeof AppPerfilRoute
+  '/_app/conversas/$conversaId': typeof AppConversasConversaIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -137,6 +146,7 @@ export interface FileRouteTypes {
     | '/criar-aula'
     | '/feed'
     | '/perfil'
+    | '/conversas/$conversaId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -150,6 +160,7 @@ export interface FileRouteTypes {
     | '/criar-aula'
     | '/feed'
     | '/perfil'
+    | '/conversas/$conversaId'
   id:
     | '__root__'
     | '/'
@@ -164,6 +175,7 @@ export interface FileRouteTypes {
     | '/_app/criar-aula'
     | '/_app/feed'
     | '/_app/perfil'
+    | '/_app/conversas/$conversaId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -262,12 +274,31 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppPerfilRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/_app/conversas/$conversaId': {
+      id: '/_app/conversas/$conversaId'
+      path: '/$conversaId'
+      fullPath: '/conversas/$conversaId'
+      preLoaderRoute: typeof AppConversasConversaIdRouteImport
+      parentRoute: typeof AppConversasRoute
+    }
   }
 }
 
+interface AppConversasRouteChildren {
+  AppConversasConversaIdRoute: typeof AppConversasConversaIdRoute
+}
+
+const AppConversasRouteChildren: AppConversasRouteChildren = {
+  AppConversasConversaIdRoute: AppConversasConversaIdRoute,
+}
+
+const AppConversasRouteWithChildren = AppConversasRoute._addFileChildren(
+  AppConversasRouteChildren,
+)
+
 interface AppRouteRouteChildren {
   AppAulasRoute: typeof AppAulasRoute
-  AppConversasRoute: typeof AppConversasRoute
+  AppConversasRoute: typeof AppConversasRouteWithChildren
   AppCriarAulaRoute: typeof AppCriarAulaRoute
   AppFeedRoute: typeof AppFeedRoute
   AppPerfilRoute: typeof AppPerfilRoute
@@ -275,7 +306,7 @@ interface AppRouteRouteChildren {
 
 const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppAulasRoute: AppAulasRoute,
-  AppConversasRoute: AppConversasRoute,
+  AppConversasRoute: AppConversasRouteWithChildren,
   AppCriarAulaRoute: AppCriarAulaRoute,
   AppFeedRoute: AppFeedRoute,
   AppPerfilRoute: AppPerfilRoute,

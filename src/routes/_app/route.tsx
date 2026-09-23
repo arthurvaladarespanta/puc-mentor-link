@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   createFileRoute,
   Link,
@@ -36,6 +36,7 @@ function LayoutApp() {
   const [nome, setNome] = useState("");
   const [naoLidos, setNaoLidos] = useState(0);
   const [menu, setMenu] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let ativo = true;
@@ -62,6 +63,14 @@ function LayoutApp() {
       ativo = false;
     };
   }, [rota]);
+
+  useEffect(() => {
+    function fechar(e: PointerEvent) { if (!menuRef.current?.contains(e.target as Node)) setMenu(false); }
+    function escapar(e: KeyboardEvent) { if (e.key === "Escape") setMenu(false); }
+    document.addEventListener("pointerdown", fechar);
+    document.addEventListener("keydown", escapar);
+    return () => { document.removeEventListener("pointerdown", fechar); document.removeEventListener("keydown", escapar); };
+  }, []);
 
   async function sair() {
     await supabase.auth.signOut();
@@ -113,7 +122,7 @@ function LayoutApp() {
               )}
             </button>
 
-            <div className="relative">
+            <div className="relative" ref={menuRef}>
               <button
                 type="button"
                 onClick={() => setMenu((m) => !m)}

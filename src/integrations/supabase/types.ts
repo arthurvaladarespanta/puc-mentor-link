@@ -14,6 +14,29 @@ export type Database = {
   }
   public: {
     Tables: {
+      aula_horario_ocupacao: {
+        Row: {
+          horario_id: string
+          quantidade: number
+        }
+        Insert: {
+          horario_id: string
+          quantidade?: number
+        }
+        Update: {
+          horario_id?: string
+          quantidade?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "aula_horario_ocupacao_horario_id_fkey"
+            columns: ["horario_id"]
+            isOneToOne: true
+            referencedRelation: "aula_horarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       aula_horarios: {
         Row: {
           aula_id: string

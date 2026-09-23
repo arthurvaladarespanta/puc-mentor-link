@@ -10,6 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Spinner } from "@/components/Spinner";
 import { urlDaFoto } from "@/lib/fotos";
 import type { Materia } from "@/lib/materias";
+import { traduzirErroAuth } from "@/lib/erros-auth";
 
 export const Route = createFileRoute("/_app/perfil")({
   head: () => ({
@@ -91,7 +92,16 @@ function Perfil() {
       setErros({ geral: "Não deu para enviar a foto. Use JPG ou PNG de até 5 MB." });
       return;
     }
-    await supabase.from("perfis").update({ foto_url: caminho }).eq("id", uid);
+    const { data: perfilAnterior } = await supabase.from("perfis").select("foto_url").eq("id", uid).maybeSingle();
+    const { error: erroPerfil } = await supabase.from("perfis").update({ foto_url: caminho }).eq("id", uid);
+    if (erroPerfil) {
+      await supabase.storage.from("fotos-perfil").remove([caminho]);
+      setErros({ geral: "A foto foi enviada, mas não conseguimos atualizar o perfil. Tente de novo." });
+      return;
+    }
+    if (perfilAnterior?.foto_url && perfilAnterior.foto_url !== caminho) {
+      await supabase.storage.from("fotos-perfil").remove([perfilAnterior.foto_url]);
+    }
     setFoto(await urlDaFoto(caminho));
   }
 
@@ -101,7 +111,8 @@ function Perfil() {
     const novos: typeof erros = {};
     if (nome.trim().length < 2) novos.nome = "Escreva seu nome completo.";
     if (!FORMATO_EMAIL.test(email.trim())) novos.email = "E-mail inválido. Use o formato nome@exemplo.com.";
-    if (trocandoSenha && novaSenha.length < 6) novos.senha = "A nova senha precisa ter pelo menos 6 caracteres.";
+    if (trocandoSenha && !senhaAtual) novos.senha = "Digite sua senha atual para confirmar a alteração.";
+    else if (trocandoSenha && novaSenha.length < 6) novos.senha = "A nova senha precisa ter pelo menos 6 caracteres.";
     setErros(novos);
     if (Object.keys(novos).length > 0) return;
 
@@ -117,18 +128,34 @@ function Perfil() {
       })
       .eq("id", uid);
 
-    await supabase.from("usuario_materias").delete().eq("usuario_id", uid);
+    if (erroPerfil) {
+      setSalvando(false);
+      setErros({ geral: "Não foi possível salvar o perfil. Confira sua conexão e tente de novo." });
+      return;
+    }
+
+    const { error: erroRemocaoMaterias } = await supabase.from("usuario_materias").delete().eq("usuario_id", uid);
+    if (erroRemocaoMaterias) {
+      setSalvando(false);
+      setErros({ geral: "Não foi possível atualizar suas matérias. Tente de novo." });
+      return;
+    }
     if (materias.length > 0) {
-      await supabase
+      const { error: erroMaterias } = await supabase
         .from("usuario_materias")
         .insert(materias.map((m) => ({ usuario_id: uid, materia_id: m.id })));
+      if (erroMaterias) {
+        setSalvando(false);
+        setErros({ geral: "Não foi possível atualizar suas matérias. Escolha novamente e tente de novo." });
+        return;
+      }
     }
 
     if (email.trim() !== emailOriginal) {
       const { error } = await supabase.auth.updateUser({ email: email.trim() });
       if (error) {
         setEmail(emailOriginal);
-        setErros({ email: "Esse e-mail já é de outra conta. Mantivemos o e-mail anterior." });
+        setErros({ email: `${traduzirErroAuth(error, "email")} Mantivemos o e-mail anterior.` });
         setSalvando(false);
         return;
       }
@@ -136,12 +163,15 @@ function Perfil() {
     }
 
     if (trocandoSenha && novaSenha) {
-      const { error } = await supabase.auth.updateUser({
-        password: novaSenha,
-        ...(senhaAtual ? { current_password: senhaAtual } : {}),
-      } as { password: string });
+      const { error: erroConfirmacao } = await supabase.auth.signInWithPassword({ email: emailOriginal, password: senhaAtual });
+      if (erroConfirmacao) {
+        setErros({ senha: "A senha atual não confere. Digite novamente e tente de novo." });
+        setSalvando(false);
+        return;
+      }
+      const { error } = await supabase.auth.updateUser({ password: novaSenha });
       if (error) {
-        setErros({ senha: "Não deu para alterar a senha. Confira a senha atual e tente de novo." });
+        setErros({ senha: traduzirErroAuth(error, "senha") });
         setSalvando(false);
         return;
       }
@@ -151,10 +181,6 @@ function Perfil() {
     }
 
     setSalvando(false);
-    if (erroPerfil) {
-      setErros({ geral: "Não deu para salvar agora. Tente de novo em instantes." });
-      return;
-    }
     setSucesso(true);
   }
 
@@ -302,7 +328,7 @@ function Perfil() {
           <div className="flex items-start justify-between gap-4 rounded-[4px] bg-muted p-4">
             <div>
               <p className="font-medium">Resumo semanal por e-mail</p>
-              <p className="text-sm text-muted-foreground">Relatório de horas estudadas e próximas aulas.</p>
+               <p className="text-sm text-muted-foreground">Uma vez por semana, as aulas novas das suas matérias.</p>
             </div>
             <Switch
               checked={resumoSemanal}
@@ -314,7 +340,7 @@ function Perfil() {
           <div className="flex items-start justify-between gap-4 rounded-[4px] bg-muted p-4">
             <div>
               <p className="font-medium">Aviso de nova mensagem por e-mail</p>
-              <p className="text-sm text-muted-foreground">Alertas quando alguém responder você no chat.</p>
+               <p className="text-sm text-muted-foreground">Quando alguém te mandar mensagem e você não estiver no site.</p>
             </div>
             <Switch
               checked={avisoMensagem}
