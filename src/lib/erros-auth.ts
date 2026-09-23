@@ -1,7 +1,7 @@
-type ErroAuth = { message?: string; code?: string; status?: number } | null | undefined;
+type ErroAuth = { message?: unknown; code?: unknown; status?: unknown } | null | undefined;
 
 export function traduzirErroAuth(erro: ErroAuth, contexto: "cadastro" | "email" | "senha") {
-  const texto = `${erro?.code ?? ""} ${erro?.message ?? ""}`.toLowerCase();
+  const texto = `${String(erro?.code ?? "")} ${String(erro?.message ?? "")}`.toLowerCase();
   const minimo = texto.match(/(?:at least|minimum of)\s+(\d+)/)?.[1] ?? "6";
 
   if (/weak_password|password.*(pwned|leaked|breach|common)|compromised/.test(texto)) {
