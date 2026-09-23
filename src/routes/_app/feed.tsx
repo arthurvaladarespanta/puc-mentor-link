@@ -46,14 +46,22 @@ function Feed() {
     setUid(userId);
     const agora = new Date().toISOString();
     const [{ data: dadosAulas }, { data: vinculos }, { data: minhas }] = await Promise.all([
-      supabase.from("aulas").select("id,tutor_id,descricao,preco,max_alunos,local,modo,selo,created_at,materias(id,nome),perfis!aulas_tutor_id_fkey(nome,foto_url),aula_horarios(id,inicio,duracao_minutos)").is("apagada_em", null).gt("aula_horarios.inicio", agora).order("created_at", { ascending: false }),
+      supabase.from("aulas").select("id,tutor_id,descricao,preco,max_alunos,local,modo,selo,created_at,materias(id,nome),aula_horarios(id,inicio,duracao_minutos)").is("apagada_em", null).gt("aula_horarios.inicio", agora).order("created_at", { ascending: false }),
       supabase.from("usuario_materias").select("materias(id,nome)").eq("usuario_id", userId),
-      supabase.from("inscricoes").select("aula_id,conversas!inner(id)").eq("aluno_id", userId).is("cancelada_em", null),
+      supabase.from("inscricoes").select("aula_id").eq("aluno_id", userId).is("cancelada_em", null),
     ]);
-    const aulasValidas = ((dadosAulas ?? []) as unknown as Aula[]).filter((a) => a.aula_horarios.length);
+    const aulasBase = (dadosAulas ?? []) as unknown as Omit<Aula, "perfis">[];
+    const idsTutores = [...new Set(aulasBase.map((a) => a.tutor_id))];
+    const idsAulasInscritas = (minhas ?? []).map((i) => i.aula_id);
+    const [{ data: perfis }, { data: conversas }] = await Promise.all([
+      idsTutores.length ? supabase.from("perfis").select("id,nome,foto_url").in("id", idsTutores) : Promise.resolve({ data: [] }),
+      idsAulasInscritas.length ? supabase.from("conversas").select("id,aula_id").eq("aluno_id", userId).in("aula_id", idsAulasInscritas) : Promise.resolve({ data: [] }),
+    ]);
+    const perfisPorId = Object.fromEntries((perfis ?? []).map((p) => [p.id, p]));
+    const aulasValidas = aulasBase.filter((a) => a.aula_horarios.length).map((a) => ({ ...a, perfis: perfisPorId[a.tutor_id] ?? { nome: "Tutor", foto_url: null } }));
     setAulas(aulasValidas);
     setInteresses((vinculos ?? []).map((v) => v.materias).filter(Boolean) as unknown as { id: string; nome: string }[]);
-    setInscricoes(Object.fromEntries((minhas ?? []).map((i) => [i.aula_id, (i.conversas as unknown as { id: string }[])?.[0]?.id ?? ""])));
+    setInscricoes(Object.fromEntries((conversas ?? []).map((c) => [c.aula_id, c.id])));
     const idsHorarios = aulasValidas.flatMap((a) => a.aula_horarios.map((h) => h.id));
     if (idsHorarios.length) {
       const { data: contagens } = await supabase.from("aula_horario_ocupacao").select("horario_id,quantidade").in("horario_id", idsHorarios);

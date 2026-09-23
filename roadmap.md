@@ -5,4 +5,4 @@
 - [x] Build feed, filters, pagination, and enrollment modal
 - [x] Build conversation list, realtime chat, presence, attachments, and offline retry
 - [x] Apply required database policy/realtime changes
-- [ ] Verify routes, authenticated flows, tests, and browser behavior
+- [x] Verify routes, authenticated flows, tests, and browser behavior
