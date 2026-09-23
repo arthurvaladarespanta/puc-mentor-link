@@ -14,7 +14,356 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      aula_horarios: {
+        Row: {
+          aula_id: string
+          duracao_minutos: number
+          id: string
+          inicio: string
+        }
+        Insert: {
+          aula_id: string
+          duracao_minutos: number
+          id?: string
+          inicio: string
+        }
+        Update: {
+          aula_id?: string
+          duracao_minutos?: number
+          id?: string
+          inicio?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "aula_horarios_aula_id_fkey"
+            columns: ["aula_id"]
+            isOneToOne: false
+            referencedRelation: "aulas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      aulas: {
+        Row: {
+          apagada_em: string | null
+          created_at: string
+          descricao: string
+          id: string
+          local: string | null
+          materia_id: string
+          max_alunos: number | null
+          modo: string | null
+          preco: number | null
+          selo: string | null
+          tutor_id: string
+          updated_at: string
+        }
+        Insert: {
+          apagada_em?: string | null
+          created_at?: string
+          descricao: string
+          id?: string
+          local?: string | null
+          materia_id: string
+          max_alunos?: number | null
+          modo?: string | null
+          preco?: number | null
+          selo?: string | null
+          tutor_id: string
+          updated_at?: string
+        }
+        Update: {
+          apagada_em?: string | null
+          created_at?: string
+          descricao?: string
+          id?: string
+          local?: string | null
+          materia_id?: string
+          max_alunos?: number | null
+          modo?: string | null
+          preco?: number | null
+          selo?: string | null
+          tutor_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "aulas_materia_id_fkey"
+            columns: ["materia_id"]
+            isOneToOne: false
+            referencedRelation: "materias"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      avaliacoes: {
+        Row: {
+          comentario: string | null
+          created_at: string
+          id: string
+          inscricao_id: string
+          nota: number
+        }
+        Insert: {
+          comentario?: string | null
+          created_at?: string
+          id?: string
+          inscricao_id: string
+          nota: number
+        }
+        Update: {
+          comentario?: string | null
+          created_at?: string
+          id?: string
+          inscricao_id?: string
+          nota?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avaliacoes_inscricao_id_fkey"
+            columns: ["inscricao_id"]
+            isOneToOne: true
+            referencedRelation: "inscricoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      avisos: {
+        Row: {
+          created_at: string
+          id: string
+          lido: boolean
+          texto: string
+          usuario_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          lido?: boolean
+          texto: string
+          usuario_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          lido?: boolean
+          texto?: string
+          usuario_id?: string
+        }
+        Relationships: []
+      }
+      conversas: {
+        Row: {
+          aluno_id: string
+          aula_id: string
+          created_at: string
+          id: string
+          tutor_id: string
+        }
+        Insert: {
+          aluno_id: string
+          aula_id: string
+          created_at?: string
+          id?: string
+          tutor_id: string
+        }
+        Update: {
+          aluno_id?: string
+          aula_id?: string
+          created_at?: string
+          id?: string
+          tutor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversas_aula_id_fkey"
+            columns: ["aula_id"]
+            isOneToOne: false
+            referencedRelation: "aulas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cursos: {
+        Row: {
+          id: string
+          nome: string
+        }
+        Insert: {
+          id?: string
+          nome: string
+        }
+        Update: {
+          id?: string
+          nome?: string
+        }
+        Relationships: []
+      }
+      inscricoes: {
+        Row: {
+          aluno_id: string
+          aula_id: string
+          cancelada_em: string | null
+          created_at: string
+          horario_id: string
+          id: string
+        }
+        Insert: {
+          aluno_id: string
+          aula_id: string
+          cancelada_em?: string | null
+          created_at?: string
+          horario_id: string
+          id?: string
+        }
+        Update: {
+          aluno_id?: string
+          aula_id?: string
+          cancelada_em?: string | null
+          created_at?: string
+          horario_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inscricoes_aula_id_fkey"
+            columns: ["aula_id"]
+            isOneToOne: false
+            referencedRelation: "aulas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inscricoes_horario_id_fkey"
+            columns: ["horario_id"]
+            isOneToOne: false
+            referencedRelation: "aula_horarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      materias: {
+        Row: {
+          created_at: string
+          id: string
+          nome: string
+          nome_normalizado: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nome: string
+          nome_normalizado: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nome?: string
+          nome_normalizado?: string
+        }
+        Relationships: []
+      }
+      mensagens: {
+        Row: {
+          anexo_nome: string | null
+          anexo_url: string | null
+          autor_id: string
+          conversa_id: string
+          created_at: string
+          id: string
+          texto: string
+        }
+        Insert: {
+          anexo_nome?: string | null
+          anexo_url?: string | null
+          autor_id: string
+          conversa_id: string
+          created_at?: string
+          id?: string
+          texto?: string
+        }
+        Update: {
+          anexo_nome?: string | null
+          anexo_url?: string | null
+          autor_id?: string
+          conversa_id?: string
+          created_at?: string
+          id?: string
+          texto?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mensagens_conversa_id_fkey"
+            columns: ["conversa_id"]
+            isOneToOne: false
+            referencedRelation: "conversas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      perfis: {
+        Row: {
+          aviso_nova_mensagem: boolean
+          aviso_resumo_semanal: boolean
+          created_at: string
+          curso_id: string | null
+          foto_url: string | null
+          id: string
+          nome: string
+        }
+        Insert: {
+          aviso_nova_mensagem?: boolean
+          aviso_resumo_semanal?: boolean
+          created_at?: string
+          curso_id?: string | null
+          foto_url?: string | null
+          id: string
+          nome?: string
+        }
+        Update: {
+          aviso_nova_mensagem?: boolean
+          aviso_resumo_semanal?: boolean
+          created_at?: string
+          curso_id?: string | null
+          foto_url?: string | null
+          id?: string
+          nome?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "perfis_curso_id_fkey"
+            columns: ["curso_id"]
+            isOneToOne: false
+            referencedRelation: "cursos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      usuario_materias: {
+        Row: {
+          created_at: string
+          materia_id: string
+          usuario_id: string
+        }
+        Insert: {
+          created_at?: string
+          materia_id: string
+          usuario_id: string
+        }
+        Update: {
+          created_at?: string
+          materia_id?: string
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "usuario_materias_materia_id_fkey"
+            columns: ["materia_id"]
+            isOneToOne: false
+            referencedRelation: "materias"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
