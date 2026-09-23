@@ -373,6 +373,13 @@ export type Database = {
         Args: { p_aula_id: string; p_horario_id: string }
         Returns: string
       }
+      ocupacao_horarios: {
+        Args: { p_horarios: string[] }
+        Returns: {
+          horario_id: string
+          quantidade: number
+        }[]
+      }
       publicar_aula: {
         Args: {
           p_descricao: string
