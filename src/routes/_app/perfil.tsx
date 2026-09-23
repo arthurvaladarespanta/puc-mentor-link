@@ -111,7 +111,8 @@ function Perfil() {
     const novos: typeof erros = {};
     if (nome.trim().length < 2) novos.nome = "Escreva seu nome completo.";
     if (!FORMATO_EMAIL.test(email.trim())) novos.email = "E-mail inválido. Use o formato nome@exemplo.com.";
-    if (trocandoSenha && novaSenha.length < 6) novos.senha = "A nova senha precisa ter pelo menos 6 caracteres.";
+    if (trocandoSenha && !senhaAtual) novos.senha = "Digite sua senha atual para confirmar a alteração.";
+    else if (trocandoSenha && novaSenha.length < 6) novos.senha = "A nova senha precisa ter pelo menos 6 caracteres.";
     setErros(novos);
     if (Object.keys(novos).length > 0) return;
 
@@ -162,6 +163,12 @@ function Perfil() {
     }
 
     if (trocandoSenha && novaSenha) {
+      const { error: erroConfirmacao } = await supabase.auth.signInWithPassword({ email: emailOriginal, password: senhaAtual });
+      if (erroConfirmacao) {
+        setErros({ senha: "A senha atual não confere. Digite novamente e tente de novo." });
+        setSalvando(false);
+        return;
+      }
       const { error } = await supabase.auth.updateUser({ password: novaSenha });
       if (error) {
         setErros({ senha: traduzirErroAuth(error, "senha") });
