@@ -1,8 +1,6 @@
 # Roadmap
 
-- [x] Improve account/profile errors, subject picker overlay, switch copy, and avatar access
-- [x] Build create-class flow with validation and persistence
-- [x] Build feed, filters, pagination, and enrollment modal
-- [x] Build conversation list, realtime chat, presence, attachments, and offline retry
-- [x] Apply required database policy/realtime changes
-- [x] Verify routes, authenticated flows, tests, and browser behavior
+- [ ] Add secure backend operations for enrollment cancellation, class editing, and class deletion notifications
+- [ ] Build Aulas student and tutor tabs with actions and empty states
+- [ ] Make the notification bell open, list, and mark notices read
+- [ ] Validate tests, routes, desktop, and mobile behavior
