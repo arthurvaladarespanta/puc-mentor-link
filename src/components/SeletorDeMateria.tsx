@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Plus, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -25,6 +26,8 @@ export function SeletorDeMateria({ selecionadas, aoMudar, multiplo = true, rotul
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const caixa = useRef<HTMLDivElement>(null);
+  const campo = useRef<HTMLInputElement>(null);
+  const [posicao, setPosicao] = useState({ top: 0, left: 0, width: 0 });
 
   useEffect(() => {
     let ativo = true;
@@ -41,6 +44,29 @@ export function SeletorDeMateria({ selecionadas, aoMudar, multiplo = true, rotul
       ativo = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (!aberto) return;
+    function atualizar() {
+      const rect = campo.current?.getBoundingClientRect();
+      if (rect) setPosicao({ top: rect.bottom + 4, left: rect.left, width: rect.width });
+    }
+    function teclado(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        setAberto(false);
+        campo.current?.focus();
+      }
+    }
+    atualizar();
+    window.addEventListener("resize", atualizar);
+    window.addEventListener("scroll", atualizar, true);
+    document.addEventListener("keydown", teclado);
+    return () => {
+      window.removeEventListener("resize", atualizar);
+      window.removeEventListener("scroll", atualizar, true);
+      document.removeEventListener("keydown", teclado);
+    };
+  }, [aberto]);
 
   useEffect(() => {
     function fora(e: MouseEvent) {
@@ -128,6 +154,7 @@ export function SeletorDeMateria({ selecionadas, aoMudar, multiplo = true, rotul
 
       <div className="relative">
         <Input
+          ref={campo}
           id="busca-materia"
           value={busca}
           onFocus={() => setAberto(true)}
@@ -138,8 +165,11 @@ export function SeletorDeMateria({ selecionadas, aoMudar, multiplo = true, rotul
           placeholder={multiplo ? "Buscar ou adicionar matéria" : "Buscar matéria"}
           autoComplete="off"
         />
-        {aberto && (
-          <div className="absolute z-20 mt-1 w-full overflow-hidden rounded-[8px] border border-border bg-card">
+        {aberto && typeof document !== "undefined" && createPortal(
+          <div
+            className="fixed z-[100] overflow-hidden rounded-[8px] border border-border bg-card"
+            style={{ top: posicao.top, left: posicao.left, width: posicao.width }}
+          >
             {carregando ? (
               <div className="flex items-center gap-2 p-3 text-sm text-muted-foreground">
                 <Spinner className="size-4" /> Carregando matérias
@@ -179,7 +209,8 @@ export function SeletorDeMateria({ selecionadas, aoMudar, multiplo = true, rotul
                 )}
               </ul>
             )}
-          </div>
+          </div>,
+          document.body,
         )}
       </div>
       {erro && <p className="text-sm text-destructive">{erro}</p>}

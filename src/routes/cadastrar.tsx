@@ -6,6 +6,7 @@ import { CampoSenha } from "@/components/CampoSenha";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/Spinner";
+import { traduzirErroAuth } from "@/lib/erros-auth";
 
 export const Route = createFileRoute("/cadastrar")({
   ssr: false,
@@ -52,12 +53,8 @@ function Cadastrar() {
     setCarregando(false);
 
     if (error) {
-      const jaExiste = /registered|already|exists/i.test(error.message);
-      setErros({
-        email: jaExiste
-          ? "Esse e-mail já está em uso. Entre na sua conta ou recupere a senha."
-          : "Não deu para criar a conta agora. Tente de novo em instantes.",
-      });
+      const mensagem = traduzirErroAuth(error, "cadastro");
+      setErros(/senha|password/i.test(mensagem) ? { senha: mensagem } : { email: mensagem });
       return;
     }
 
@@ -87,7 +84,7 @@ function Cadastrar() {
           {erros.email && (
             <p className="text-sm text-destructive">
               {erros.email}{" "}
-              {erros.email.includes("em uso") && (
+               {erros.email.includes("já tem conta") && (
                 <>
                   <Link to="/entrar" className="underline">
                     Entrar

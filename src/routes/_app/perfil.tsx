@@ -10,6 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Spinner } from "@/components/Spinner";
 import { urlDaFoto } from "@/lib/fotos";
 import type { Materia } from "@/lib/materias";
+import { traduzirErroAuth } from "@/lib/erros-auth";
 
 export const Route = createFileRoute("/_app/perfil")({
   head: () => ({
@@ -128,7 +129,7 @@ function Perfil() {
       const { error } = await supabase.auth.updateUser({ email: email.trim() });
       if (error) {
         setEmail(emailOriginal);
-        setErros({ email: "Esse e-mail já é de outra conta. Mantivemos o e-mail anterior." });
+        setErros({ email: `${traduzirErroAuth(error, "email")} Mantivemos o e-mail anterior.` });
         setSalvando(false);
         return;
       }
@@ -141,7 +142,7 @@ function Perfil() {
         ...(senhaAtual ? { current_password: senhaAtual } : {}),
       } as { password: string });
       if (error) {
-        setErros({ senha: "Não deu para alterar a senha. Confira a senha atual e tente de novo." });
+        setErros({ senha: traduzirErroAuth(error, "senha") });
         setSalvando(false);
         return;
       }
@@ -302,7 +303,7 @@ function Perfil() {
           <div className="flex items-start justify-between gap-4 rounded-[4px] bg-muted p-4">
             <div>
               <p className="font-medium">Resumo semanal por e-mail</p>
-              <p className="text-sm text-muted-foreground">Relatório de horas estudadas e próximas aulas.</p>
+               <p className="text-sm text-muted-foreground">Uma vez por semana, as aulas novas das suas matérias.</p>
             </div>
             <Switch
               checked={resumoSemanal}
@@ -314,7 +315,7 @@ function Perfil() {
           <div className="flex items-start justify-between gap-4 rounded-[4px] bg-muted p-4">
             <div>
               <p className="font-medium">Aviso de nova mensagem por e-mail</p>
-              <p className="text-sm text-muted-foreground">Alertas quando alguém responder você no chat.</p>
+               <p className="text-sm text-muted-foreground">Quando alguém te mandar mensagem e você não estiver no site.</p>
             </div>
             <Switch
               checked={avisoMensagem}
