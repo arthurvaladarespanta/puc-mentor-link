@@ -136,7 +136,7 @@ function Perfil() {
     const { error: erroRemocaoMaterias } = await supabase.from("usuario_materias").delete().eq("usuario_id", uid);
     if (erroRemocaoMaterias) {
       setSalvando(false);
-      setErros({ materias: "Não foi possível atualizar suas matérias. Tente de novo." });
+      setErros({ geral: "Não foi possível atualizar suas matérias. Tente de novo." });
       return;
     }
     if (materias.length > 0) {
@@ -145,7 +145,7 @@ function Perfil() {
         .insert(materias.map((m) => ({ usuario_id: uid, materia_id: m.id })));
       if (erroMaterias) {
         setSalvando(false);
-        setErros({ materias: "Não foi possível atualizar suas matérias. Escolha novamente e tente de novo." });
+        setErros({ geral: "Não foi possível atualizar suas matérias. Escolha novamente e tente de novo." });
         return;
       }
     }
