@@ -20,6 +20,7 @@ import { Route as AppAulasRouteImport } from './routes/_app/aulas'
 import { Route as AppConversasRouteImport } from './routes/_app/conversas'
 import { Route as AppCriarAulaRouteImport } from './routes/_app/criar-aula'
 import { Route as AppFeedRouteImport } from './routes/_app/feed'
+import { Route as AppPerfilRouteImport } from './routes/_app/perfil'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -75,6 +76,11 @@ const AppFeedRoute = AppFeedRouteImport.update({
   path: '/feed',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const AppPerfilRoute = AppPerfilRouteImport.update({
+  id: '/perfil',
+  path: '/perfil',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -87,6 +93,7 @@ export interface FileRoutesByFullPath {
   '/conversas': typeof AppConversasRoute
   '/criar-aula': typeof AppCriarAulaRoute
   '/feed': typeof AppFeedRoute
+  '/perfil': typeof AppPerfilRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -99,6 +106,7 @@ export interface FileRoutesByTo {
   '/conversas': typeof AppConversasRoute
   '/criar-aula': typeof AppCriarAulaRoute
   '/feed': typeof AppFeedRoute
+  '/perfil': typeof AppPerfilRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -113,6 +121,7 @@ export interface FileRoutesById {
   '/_app/conversas': typeof AppConversasRoute
   '/_app/criar-aula': typeof AppCriarAulaRoute
   '/_app/feed': typeof AppFeedRoute
+  '/_app/perfil': typeof AppPerfilRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -127,6 +136,7 @@ export interface FileRouteTypes {
     | '/conversas'
     | '/criar-aula'
     | '/feed'
+    | '/perfil'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -139,6 +149,7 @@ export interface FileRouteTypes {
     | '/conversas'
     | '/criar-aula'
     | '/feed'
+    | '/perfil'
   id:
     | '__root__'
     | '/'
@@ -152,6 +163,7 @@ export interface FileRouteTypes {
     | '/_app/conversas'
     | '/_app/criar-aula'
     | '/_app/feed'
+    | '/_app/perfil'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -243,6 +255,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppFeedRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/_app/perfil': {
+      id: '/_app/perfil'
+      path: '/perfil'
+      fullPath: '/perfil'
+      preLoaderRoute: typeof AppPerfilRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
   }
 }
 
@@ -251,6 +270,7 @@ interface AppRouteRouteChildren {
   AppConversasRoute: typeof AppConversasRoute
   AppCriarAulaRoute: typeof AppCriarAulaRoute
   AppFeedRoute: typeof AppFeedRoute
+  AppPerfilRoute: typeof AppPerfilRoute
 }
 
 const AppRouteRouteChildren: AppRouteRouteChildren = {
@@ -258,6 +278,7 @@ const AppRouteRouteChildren: AppRouteRouteChildren = {
   AppConversasRoute: AppConversasRoute,
   AppCriarAulaRoute: AppCriarAulaRoute,
   AppFeedRoute: AppFeedRoute,
+  AppPerfilRoute: AppPerfilRoute,
 }
 
 const AppRouteRouteWithChildren = AppRouteRoute._addFileChildren(
