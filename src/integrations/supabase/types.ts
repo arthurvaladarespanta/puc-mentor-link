@@ -369,7 +369,23 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      confirmar_inscricao: {
+        Args: { p_aula_id: string; p_horario_id: string }
+        Returns: string
+      }
+      publicar_aula: {
+        Args: {
+          p_descricao: string
+          p_horarios: Json
+          p_local: string
+          p_materia_id: string
+          p_max_alunos: number
+          p_modo: string
+          p_preco: number
+          p_selo: string
+        }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
