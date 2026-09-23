@@ -45,8 +45,8 @@ function CriarAula() {
   async function publicar(e: React.FormEvent) {
     e.preventDefault();
     const novos: Record<string, string> = {};
-    if (!materia[0]) novos.materia = "Escolha uma matéria.";
-    if (!descricao.trim()) novos.descricao = "Conte o que será estudado na aula.";
+    if (!materia[0]) novos['materia'] = "Escolha uma matéria.";
+    if (!descricao.trim()) novos['descricao'] = "Conte o que será estudado na aula.";
     const convertidos = horarios.map((h, i) => {
       if (!h.data || !h.hora) novos[`horario-${i}`] = "Informe a data e a hora.";
       const inicio = h.data && h.hora ? new Date(`${h.data}T${h.hora}:00`) : null;
@@ -55,8 +55,8 @@ function CriarAula() {
     });
     const numeroPreco = preco ? Number(preco.replace(",", ".")) : null;
     const numeroMax = maxAlunos ? Number(maxAlunos) : null;
-    if (numeroPreco != null && (Number.isNaN(numeroPreco) || numeroPreco < 0)) novos.preco = "Informe um preço válido.";
-    if (numeroMax != null && (!Number.isInteger(numeroMax) || numeroMax < 1)) novos.max = "Informe pelo menos 1 aluno.";
+    if (numeroPreco != null && (Number.isNaN(numeroPreco) || numeroPreco < 0)) novos['preco'] = "Informe um preço válido.";
+    if (numeroMax != null && (!Number.isInteger(numeroMax) || numeroMax < 1)) novos['max'] = "Informe pelo menos 1 aluno.";
     setErros(novos);
     if (Object.keys(novos).length || !materia[0]) return;
 
@@ -76,7 +76,8 @@ function CriarAula() {
       setErros({ geral: /passado/.test(error.message) ? "Um dos horários já passou. Escolha outro." : "Não foi possível publicar. Confira os dados e tente de novo." });
       return;
     }
-    navigate({ to: "/feed", search: { publicada: "1" } });
+    sessionStorage.setItem("calouro-aula-publicada", "1");
+    navigate({ to: "/feed" });
   }
 
   return (
@@ -86,10 +87,10 @@ function CriarAula() {
       <p className="mt-2 text-muted-foreground">Preencha as informações para publicar sua aula e ajudar outros alunos.</p>
 
       <form onSubmit={publicar} className="mt-6 space-y-6 rounded-[8px] border border-border bg-card p-5 sm:p-7" noValidate>
-        <Campo rotulo="Matéria" obrigatorio erro={erros.materia}>
+        <Campo rotulo="Matéria" obrigatorio erro={erros['materia']}>
           <SeletorDeMateria selecionadas={materia} aoMudar={setMateria} multiplo={false} />
         </Campo>
-        <Campo rotulo="Descrição" obrigatorio erro={erros.descricao} complemento={`${descricao.length} / 400`}>
+        <Campo rotulo="Descrição" obrigatorio erro={erros['descricao']} complemento={`${descricao.length} / 400`}>
           <Textarea value={descricao} onChange={(e) => setDescricao(e.target.value)} maxLength={400} className="min-h-32 resize-y rounded-[4px] bg-background" placeholder="Conte os tópicos que pretende cobrir e como a aula vai ajudar." />
         </Campo>
 
@@ -110,13 +111,13 @@ function CriarAula() {
         </fieldset>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <Campo rotulo="Preço em R$" erro={erros.preco}><Input inputMode="decimal" value={preco} onChange={(e) => setPreco(e.target.value)} placeholder="Ex.: 50,00" /></Campo>
-          <Campo rotulo="Qtd. máxima de alunos" erro={erros.max}><Input type="number" min="1" value={maxAlunos} onChange={(e) => setMaxAlunos(e.target.value)} placeholder="Ex.: 5" /></Campo>
+          <Campo rotulo="Preço em R$" erro={erros['preco']}><Input inputMode="decimal" value={preco} onChange={(e) => setPreco(e.target.value)} placeholder="Ex.: 50,00" /></Campo>
+          <Campo rotulo="Qtd. máxima de alunos" erro={erros['max']}><Input type="number" min="1" value={maxAlunos} onChange={(e) => setMaxAlunos(e.target.value)} placeholder="Ex.: 5" /></Campo>
           <Campo rotulo="Modalidade"><select value={modo} onChange={(e) => setModo(e.target.value)} className="h-11 w-full rounded-[4px] border border-input bg-card px-3 text-sm"><option value="">Não informar</option><option value="presencial">Presencial</option><option value="online">Online</option></select></Campo>
           <Campo rotulo="Selo"><select value={selo} onChange={(e) => setSelo(e.target.value)} className="h-11 w-full rounded-[4px] border border-input bg-card px-3 text-sm"><option value="">Sem selo</option><option value="Monitoria">Monitoria</option><option value="Veterano">Veterano</option></select></Campo>
         </div>
         <Campo rotulo="Local"><Input value={local} onChange={(e) => setLocal(e.target.value)} placeholder={modo === "online" ? "Ex.: link enviado pelo chat" : "Ex.: Biblioteca Central"} /></Campo>
-        {erros.geral && <p className="text-sm text-destructive">{erros.geral}</p>}
+        {erros['geral'] && <p className="text-sm text-destructive">{erros['geral']}</p>}
         <Button type="submit" className="w-full" disabled={salvando}>{salvando ? <Spinner /> : <><Send className="text-accent" /> Publicar aula</>}</Button>
         <Button asChild type="button" variant="ghost" className="w-full"><Link to="/feed">Cancelar e descartar</Link></Button>
       </form>
@@ -124,6 +125,6 @@ function CriarAula() {
   );
 }
 
-function Campo({ rotulo, obrigatorio, erro, complemento, children }: { rotulo: string; obrigatorio?: boolean; erro?: string; complemento?: string; children: React.ReactNode }) {
+function Campo({ rotulo, obrigatorio, erro, complemento, children }: { rotulo: string; obrigatorio?: boolean; erro?: string | undefined; complemento?: string | undefined; children: React.ReactNode }) {
   return <div className="space-y-2"><div className="flex justify-between gap-3"><span className="font-medium">{rotulo}{obrigatorio && <span className="text-destructive"> *</span>}</span>{complemento && <span className="text-sm text-muted-foreground">{complemento}</span>}</div>{children}{erro && <p className="text-sm text-destructive">{erro}</p>}</div>;
 }

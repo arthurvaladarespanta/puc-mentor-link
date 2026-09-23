@@ -9,7 +9,6 @@ import { Spinner } from "@/components/Spinner";
 import { formatarDataHora, formatarPreco } from "@/lib/formatacao";
 
 export const Route = createFileRoute("/_app/feed")({
-  validateSearch: (search: Record<string, unknown>) => ({ publicada: search.publicada === "1" ? "1" : undefined }),
   head: () => ({
     meta: [
       { title: "Feed | Calouro+" },
@@ -25,7 +24,7 @@ type Aula = { id: string; tutor_id: string; descricao: string; preco: number | n
 
 function Feed() {
   const navigate = useNavigate();
-  const { publicada } = Route.useSearch();
+  const [publicada, setPublicada] = useState(false);
   const [uid, setUid] = useState("");
   const [aulas, setAulas] = useState<Aula[]>([]);
   const [interesses, setInteresses] = useState<{ id: string; nome: string }[]>([]);
@@ -61,7 +60,11 @@ function Feed() {
     setCarregando(false);
   }
 
-  useEffect(() => { void carregar(); }, []);
+  useEffect(() => {
+    setPublicada(sessionStorage.getItem("calouro-aula-publicada") === "1");
+    sessionStorage.removeItem("calouro-aula-publicada");
+    void carregar();
+  }, []);
   const ordenadas = useMemo(() => {
     const ids = new Set(interesses.map((i) => i.id));
     return aulas.filter((a) => filtro === "todas" || a.materias.id === filtro).sort((a, b) => Number(ids.has(b.materias.id)) - Number(ids.has(a.materias.id)) || +new Date(b.created_at) - +new Date(a.created_at));
@@ -80,7 +83,8 @@ function Feed() {
       return;
     }
     setSelecionada(null);
-    navigate({ to: "/conversas", search: { conversa: data, confirmada: "1" } });
+    sessionStorage.setItem("calouro-inscricao-confirmada", "1");
+    navigate({ to: "/conversas/$conversaId", params: { conversaId: data } });
   }
 
   if (carregando) return <div className="flex justify-center py-20"><Spinner /></div>;
@@ -94,7 +98,7 @@ function Feed() {
         <div className="flex items-start gap-3"><AvatarPerfil caminho={aula.perfis?.foto_url} nome={aula.perfis?.nome ?? "Tutor"} /><div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><h2 className="font-serif text-xl font-semibold">{aula.materias.nome}</h2>{aula.selo && <span className="rounded-[4px] bg-muted px-2 py-1 text-[10px] font-semibold uppercase">{aula.selo}</span>}</div><p className="text-sm text-muted-foreground">com {aula.perfis?.nome || "Tutor"}</p></div></div>
         <p className="mt-4 line-clamp-3 text-sm">{aula.descricao}</p>
         <div className="mt-4 space-y-2 text-sm text-muted-foreground"><p className="flex gap-2"><CalendarDays className="size-4 text-success" />{aula.aula_horarios.slice(0, 2).map((h) => formatarDataHora(h.inicio)).join(" · ")}</p>{(aula.modo || aula.local) && <p className="flex gap-2"><MapPin className="size-4" />{[aula.modo, aula.local].filter(Boolean).join(" · ")}</p>}{aula.max_alunos && <p className="flex gap-2"><Users className="size-4" />Até {aula.max_alunos} alunos por horário</p>}</div>
-        <div className="mt-5 flex items-center justify-between gap-3"><strong>{formatarPreco(aula.preco)}<span className="text-xs font-normal text-muted-foreground"> / hora</span></strong>{propria ? <span className="text-sm font-semibold text-muted-foreground">Sua aula</span> : conversa ? <Button onClick={() => navigate({ to: "/conversas", search: { conversa } })}><MessageSquare /> Abrir conversa</Button> : <Button variant="destaque" onClick={() => { setSelecionada(aula); setHorarioId(""); setErro(null); }}>Se inscrever na aula</Button>}</div>
+        <div className="mt-5 flex items-center justify-between gap-3"><strong>{formatarPreco(aula.preco)}<span className="text-xs font-normal text-muted-foreground"> / hora</span></strong>{propria ? <span className="text-sm font-semibold text-muted-foreground">Sua aula</span> : conversa ? <Button onClick={() => navigate({ to: "/conversas/$conversaId", params: { conversaId: conversa } })}><MessageSquare /> Abrir conversa</Button> : <Button variant="destaque" onClick={() => { setSelecionada(aula); setHorarioId(""); setErro(null); }}>Se inscrever na aula</Button>}</div>
       </article>;
     })}</div> : <div className="mt-10 rounded-[8px] border border-border bg-card p-8 text-center"><h2 className="font-serif text-2xl">Ainda não tem aulas por aqui.</h2><p className="mt-2 text-muted-foreground">Que tal criar a primeira?</p><Button asChild className="mt-5"><Link to="/criar-aula">Criar aula</Link></Button></div>}
     {ordenadas.length > 10 && <div className="mt-6 flex justify-between"><Button variant="outline" disabled={pagina === 0} onClick={() => setPagina((p) => p - 1)}>Anterior</Button><span className="self-center text-sm text-muted-foreground">Página {pagina + 1}</span><Button variant="outline" disabled={(pagina + 1) * 10 >= ordenadas.length} onClick={() => setPagina((p) => p + 1)}>Próxima</Button></div>}
