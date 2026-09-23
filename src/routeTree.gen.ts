@@ -10,33 +10,170 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppRouteRouteImport } from './routes/_app/route'
+import { Route as CadastrarRouteImport } from './routes/cadastrar'
+import { Route as CompletarPerfilRouteImport } from './routes/completar-perfil'
+import { Route as EntrarRouteImport } from './routes/entrar'
+import { Route as EsqueciSenhaRouteImport } from './routes/esqueci-senha'
+import { Route as NovaSenhaRouteImport } from './routes/nova-senha'
+import { Route as AppAulasRouteImport } from './routes/_app/aulas'
+import { Route as AppConversasRouteImport } from './routes/_app/conversas'
+import { Route as AppCriarAulaRouteImport } from './routes/_app/criar-aula'
+import { Route as AppFeedRouteImport } from './routes/_app/feed'
+import { Route as AppPerfilRouteImport } from './routes/_app/perfil'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppRouteRoute = AppRouteRouteImport.update({
+  id: '/_app',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CadastrarRoute = CadastrarRouteImport.update({
+  id: '/cadastrar',
+  path: '/cadastrar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CompletarPerfilRoute = CompletarPerfilRouteImport.update({
+  id: '/completar-perfil',
+  path: '/completar-perfil',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EntrarRoute = EntrarRouteImport.update({
+  id: '/entrar',
+  path: '/entrar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EsqueciSenhaRoute = EsqueciSenhaRouteImport.update({
+  id: '/esqueci-senha',
+  path: '/esqueci-senha',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NovaSenhaRoute = NovaSenhaRouteImport.update({
+  id: '/nova-senha',
+  path: '/nova-senha',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppAulasRoute = AppAulasRouteImport.update({
+  id: '/aulas',
+  path: '/aulas',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppConversasRoute = AppConversasRouteImport.update({
+  id: '/conversas',
+  path: '/conversas',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppCriarAulaRoute = AppCriarAulaRouteImport.update({
+  id: '/criar-aula',
+  path: '/criar-aula',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppFeedRoute = AppFeedRouteImport.update({
+  id: '/feed',
+  path: '/feed',
+  getParentRoute: () => AppRouteRoute,
+} as any)
+const AppPerfilRoute = AppPerfilRouteImport.update({
+  id: '/perfil',
+  path: '/perfil',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/cadastrar': typeof CadastrarRoute
+  '/completar-perfil': typeof CompletarPerfilRoute
+  '/entrar': typeof EntrarRoute
+  '/esqueci-senha': typeof EsqueciSenhaRoute
+  '/nova-senha': typeof NovaSenhaRoute
+  '/aulas': typeof AppAulasRoute
+  '/conversas': typeof AppConversasRoute
+  '/criar-aula': typeof AppCriarAulaRoute
+  '/feed': typeof AppFeedRoute
+  '/perfil': typeof AppPerfilRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/cadastrar': typeof CadastrarRoute
+  '/completar-perfil': typeof CompletarPerfilRoute
+  '/entrar': typeof EntrarRoute
+  '/esqueci-senha': typeof EsqueciSenhaRoute
+  '/nova-senha': typeof NovaSenhaRoute
+  '/aulas': typeof AppAulasRoute
+  '/conversas': typeof AppConversasRoute
+  '/criar-aula': typeof AppCriarAulaRoute
+  '/feed': typeof AppFeedRoute
+  '/perfil': typeof AppPerfilRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_app': typeof AppRouteRouteWithChildren
+  '/cadastrar': typeof CadastrarRoute
+  '/completar-perfil': typeof CompletarPerfilRoute
+  '/entrar': typeof EntrarRoute
+  '/esqueci-senha': typeof EsqueciSenhaRoute
+  '/nova-senha': typeof NovaSenhaRoute
+  '/_app/aulas': typeof AppAulasRoute
+  '/_app/conversas': typeof AppConversasRoute
+  '/_app/criar-aula': typeof AppCriarAulaRoute
+  '/_app/feed': typeof AppFeedRoute
+  '/_app/perfil': typeof AppPerfilRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/cadastrar'
+    | '/completar-perfil'
+    | '/entrar'
+    | '/esqueci-senha'
+    | '/nova-senha'
+    | '/aulas'
+    | '/conversas'
+    | '/criar-aula'
+    | '/feed'
+    | '/perfil'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/cadastrar'
+    | '/completar-perfil'
+    | '/entrar'
+    | '/esqueci-senha'
+    | '/nova-senha'
+    | '/aulas'
+    | '/conversas'
+    | '/criar-aula'
+    | '/feed'
+    | '/perfil'
+  id:
+    | '__root__'
+    | '/'
+    | '/_app'
+    | '/cadastrar'
+    | '/completar-perfil'
+    | '/entrar'
+    | '/esqueci-senha'
+    | '/nova-senha'
+    | '/_app/aulas'
+    | '/_app/conversas'
+    | '/_app/criar-aula'
+    | '/_app/feed'
+    | '/_app/perfil'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AppRouteRoute: typeof AppRouteRouteWithChildren
+  CadastrarRoute: typeof CadastrarRoute
+  CompletarPerfilRoute: typeof CompletarPerfilRoute
+  EntrarRoute: typeof EntrarRoute
+  EsqueciSenhaRoute: typeof EsqueciSenhaRoute
+  NovaSenhaRoute: typeof NovaSenhaRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +185,114 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_app': {
+      id: '/_app'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AppRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cadastrar': {
+      id: '/cadastrar'
+      path: '/cadastrar'
+      fullPath: '/cadastrar'
+      preLoaderRoute: typeof CadastrarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/completar-perfil': {
+      id: '/completar-perfil'
+      path: '/completar-perfil'
+      fullPath: '/completar-perfil'
+      preLoaderRoute: typeof CompletarPerfilRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/entrar': {
+      id: '/entrar'
+      path: '/entrar'
+      fullPath: '/entrar'
+      preLoaderRoute: typeof EntrarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/esqueci-senha': {
+      id: '/esqueci-senha'
+      path: '/esqueci-senha'
+      fullPath: '/esqueci-senha'
+      preLoaderRoute: typeof EsqueciSenhaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/nova-senha': {
+      id: '/nova-senha'
+      path: '/nova-senha'
+      fullPath: '/nova-senha'
+      preLoaderRoute: typeof NovaSenhaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_app/aulas': {
+      id: '/_app/aulas'
+      path: '/aulas'
+      fullPath: '/aulas'
+      preLoaderRoute: typeof AppAulasRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/conversas': {
+      id: '/_app/conversas'
+      path: '/conversas'
+      fullPath: '/conversas'
+      preLoaderRoute: typeof AppConversasRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/criar-aula': {
+      id: '/_app/criar-aula'
+      path: '/criar-aula'
+      fullPath: '/criar-aula'
+      preLoaderRoute: typeof AppCriarAulaRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/feed': {
+      id: '/_app/feed'
+      path: '/feed'
+      fullPath: '/feed'
+      preLoaderRoute: typeof AppFeedRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
+    '/_app/perfil': {
+      id: '/_app/perfil'
+      path: '/perfil'
+      fullPath: '/perfil'
+      preLoaderRoute: typeof AppPerfilRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
   }
 }
 
+interface AppRouteRouteChildren {
+  AppAulasRoute: typeof AppAulasRoute
+  AppConversasRoute: typeof AppConversasRoute
+  AppCriarAulaRoute: typeof AppCriarAulaRoute
+  AppFeedRoute: typeof AppFeedRoute
+  AppPerfilRoute: typeof AppPerfilRoute
+}
+
+const AppRouteRouteChildren: AppRouteRouteChildren = {
+  AppAulasRoute: AppAulasRoute,
+  AppConversasRoute: AppConversasRoute,
+  AppCriarAulaRoute: AppCriarAulaRoute,
+  AppFeedRoute: AppFeedRoute,
+  AppPerfilRoute: AppPerfilRoute,
+}
+
+const AppRouteRouteWithChildren = AppRouteRoute._addFileChildren(
+  AppRouteRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AppRouteRoute: AppRouteRouteWithChildren,
+  CadastrarRoute: CadastrarRoute,
+  CompletarPerfilRoute: CompletarPerfilRoute,
+  EntrarRoute: EntrarRoute,
+  EsqueciSenhaRoute: EsqueciSenhaRoute,
+  NovaSenhaRoute: NovaSenhaRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
