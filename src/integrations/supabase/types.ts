@@ -392,9 +392,27 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      apagar_aula: { Args: { p_aula_id: string }; Returns: undefined }
+      cancelar_inscricao: {
+        Args: { p_inscricao_id: string }
+        Returns: undefined
+      }
       confirmar_inscricao: {
         Args: { p_aula_id: string; p_horario_id: string }
         Returns: string
+      }
+      editar_aula: {
+        Args: {
+          p_aula_id: string
+          p_descricao: string
+          p_horarios: Json
+          p_local: string
+          p_max_alunos: number
+          p_modo: string
+          p_preco: number
+          p_selo: string
+        }
+        Returns: undefined
       }
       publicar_aula: {
         Args: {

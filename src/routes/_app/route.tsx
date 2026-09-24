@@ -35,8 +35,11 @@ function LayoutApp() {
   const [foto, setFoto] = useState<string | null>(null);
   const [nome, setNome] = useState("");
   const [naoLidos, setNaoLidos] = useState(0);
+  const [avisos, setAvisos] = useState<{ id: string; texto: string; lido: boolean; created_at: string }[]>([]);
+  const [painelAvisos, setPainelAvisos] = useState(false);
   const [menu, setMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const avisosRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let ativo = true;
@@ -49,14 +52,16 @@ function LayoutApp() {
         .select("nome, foto_url")
         .eq("id", uid)
         .maybeSingle();
-      const { count } = await supabase
+      const { data: listaAvisos, count } = await supabase
         .from("avisos")
-        .select("id", { count: "exact", head: true })
+        .select("id,texto,lido,created_at", { count: "exact" })
         .eq("usuario_id", uid)
-        .eq("lido", false);
+        .order("created_at", { ascending: false })
+        .limit(20);
       if (!ativo) return;
       setNome(perfil?.nome ?? "");
       setNaoLidos(count ?? 0);
+      setAvisos(listaAvisos ?? []);
       setFoto(await urlDaFoto(perfil?.foto_url));
     })();
     return () => {
@@ -65,8 +70,8 @@ function LayoutApp() {
   }, [rota]);
 
   useEffect(() => {
-    function fechar(e: PointerEvent) { if (!menuRef.current?.contains(e.target as Node)) setMenu(false); }
-    function escapar(e: KeyboardEvent) { if (e.key === "Escape") setMenu(false); }
+    function fechar(e: PointerEvent) { if (!menuRef.current?.contains(e.target as Node)) setMenu(false); if (!avisosRef.current?.contains(e.target as Node)) setPainelAvisos(false); }
+    function escapar(e: KeyboardEvent) { if (e.key === "Escape") { setMenu(false); setPainelAvisos(false); } }
     document.addEventListener("pointerdown", fechar);
     document.addEventListener("keydown", escapar);
     return () => { document.removeEventListener("pointerdown", fechar); document.removeEventListener("keydown", escapar); };
@@ -75,6 +80,17 @@ function LayoutApp() {
   async function sair() {
     await supabase.auth.signOut();
     navigate({ to: "/entrar", replace: true });
+  }
+
+  async function abrirAvisos() {
+    const abrir = !painelAvisos;
+    setPainelAvisos(abrir);
+    setMenu(false);
+    if (!abrir || naoLidos === 0) return;
+    const ids = avisos.filter((aviso) => !aviso.lido).map((aviso) => aviso.id);
+    if (ids.length) await supabase.from("avisos").update({ lido: true }).in("id", ids);
+    setAvisos((atuais) => atuais.map((aviso) => ({ ...aviso, lido: true })));
+    setNaoLidos(0);
   }
 
   const iniciais = (nome || "?").trim().charAt(0).toUpperCase();
@@ -109,18 +125,16 @@ function LayoutApp() {
           </nav>
 
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              aria-label={`Avisos${naoLidos ? `, ${naoLidos} não lidos` : ""}`}
-              className="relative flex size-11 items-center justify-center rounded-[4px] hover:bg-muted"
-            >
-              <Bell className="size-5 text-primary" />
-              {naoLidos > 0 && (
-                <span className="absolute right-1.5 top-1.5 flex min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-bold text-accent-foreground">
-                  {naoLidos}
-                </span>
-              )}
-            </button>
+            <div className="relative" ref={avisosRef}>
+              <button type="button" onClick={abrirAvisos} aria-haspopup="dialog" aria-expanded={painelAvisos} aria-label={`Avisos${naoLidos ? `, ${naoLidos} não lidos` : ""}`} className="relative flex size-11 items-center justify-center rounded-[4px] hover:bg-muted">
+                <Bell className="size-5 text-primary" />
+                {naoLidos > 0 && <span className="absolute right-1.5 top-1.5 flex min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-bold text-accent-foreground">{naoLidos}</span>}
+              </button>
+              {painelAvisos && <div role="dialog" aria-label="Avisos" className="absolute right-0 mt-2 max-h-96 w-[min(22rem,calc(100vw-2rem))] overflow-y-auto rounded-[8px] border border-border bg-card">
+                <div className="border-b border-border px-4 py-3"><h2 className="font-serif text-lg font-semibold">Avisos</h2></div>
+                {avisos.length ? <ul className="divide-y divide-border">{avisos.map((aviso) => <li key={aviso.id} className="px-4 py-3"><p className="text-sm">{aviso.texto}</p><time className="mt-1 block text-xs text-muted-foreground">{new Date(aviso.created_at).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}</time></li>)}</ul> : <p className="p-5 text-center text-sm text-muted-foreground">Nenhum aviso por enquanto.</p>}
+              </div>}
+            </div>
 
             <div className="relative" ref={menuRef}>
               <button
