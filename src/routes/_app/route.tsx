@@ -52,12 +52,12 @@ function LayoutApp() {
         .select("nome, foto_url")
         .eq("id", uid)
         .maybeSingle();
-      const { data: listaAvisos, count } = await supabase
+      const [{ data: listaAvisos }, { count }] = await Promise.all([supabase
         .from("avisos")
-        .select("id,texto,lido,created_at", { count: "exact" })
+        .select("id,texto,lido,created_at")
         .eq("usuario_id", uid)
         .order("created_at", { ascending: false })
-        .limit(20);
+        .limit(20), supabase.from("avisos").select("id", { count: "exact", head: true }).eq("usuario_id", uid).eq("lido", false)]);
       if (!ativo) return;
       setNome(perfil?.nome ?? "");
       setNaoLidos(count ?? 0);
@@ -87,8 +87,7 @@ function LayoutApp() {
     setPainelAvisos(abrir);
     setMenu(false);
     if (!abrir || naoLidos === 0) return;
-    const ids = avisos.filter((aviso) => !aviso.lido).map((aviso) => aviso.id);
-    if (ids.length) await supabase.from("avisos").update({ lido: true }).in("id", ids);
+    await supabase.from("avisos").update({ lido: true }).eq("lido", false);
     setAvisos((atuais) => atuais.map((aviso) => ({ ...aviso, lido: true })));
     setNaoLidos(0);
   }
