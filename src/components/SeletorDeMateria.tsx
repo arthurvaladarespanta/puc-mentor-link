@@ -23,6 +23,7 @@ export function SeletorDeMateria({ selecionadas, aoMudar, multiplo = true, rotul
   const caixa = useRef<HTMLDivElement>(null);
   const campo = useRef<HTMLInputElement>(null);
   const lista = useRef<HTMLDivElement>(null);
+  const criando = useRef(false);
   const [posicao, setPosicao] = useState({ top: 0, left: 0, width: 0 });
   const [destaque, setDestaque] = useState(-1);
 
@@ -87,12 +88,16 @@ export function SeletorDeMateria({ selecionadas, aoMudar, multiplo = true, rotul
 
   useEffect(() => {
     setDestaque(-1);
-  }, [busca, aberto]);
+  }, [busca]);
 
   function aoTeclar(e: TeclaReact<HTMLInputElement>) {
     if (e.key === "ArrowDown") {
       e.preventDefault();
-      setAberto(true);
+      if (!aberto) {
+        setAberto(true);
+        setDestaque(totalOpcoes > 0 ? 0 : -1);
+        return;
+      }
       if (totalOpcoes > 0) setDestaque((d) => (d + 1) % totalOpcoes);
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
@@ -115,6 +120,16 @@ export function SeletorDeMateria({ selecionadas, aoMudar, multiplo = true, rotul
   }
 
   async function criar() {
+    if (criando.current) return;
+    criando.current = true;
+    try {
+      await criarDeFato();
+    } finally {
+      criando.current = false;
+    }
+  }
+
+  async function criarDeFato() {
     const nome = busca.trim().replace(/\s+/g, " ");
     const nome_normalizado = normalizarMateria(nome);
     setSalvando(true);
@@ -179,6 +194,7 @@ export function SeletorDeMateria({ selecionadas, aoMudar, multiplo = true, rotul
           id="busca-materia"
           value={busca}
           onFocus={() => setAberto(true)}
+          onClick={() => setAberto(true)}
           onChange={(e) => {
             setBusca(e.target.value);
             setAberto(true);
@@ -205,7 +221,10 @@ export function SeletorDeMateria({ selecionadas, aoMudar, multiplo = true, rotul
                     <li key={m.id}>
                       <button
                         type="button"
-                        onMouseDown={(e) => e.preventDefault()}
+                        onPointerDown={(e) => {
+                          e.preventDefault();
+                          escolher(m);
+                        }}
                         onClick={() => escolher(m)}
                         className={`w-full px-3 py-2 text-left text-sm hover:bg-muted ${destaque === i ? "bg-muted" : ""}`}
                       >
@@ -220,8 +239,13 @@ export function SeletorDeMateria({ selecionadas, aoMudar, multiplo = true, rotul
                     <li>
                       <button
                         type="button"
-                        onMouseDown={(e) => e.preventDefault()}
-                        onClick={criar}
+                        onPointerDown={(e) => {
+                          e.preventDefault();
+                          void criar();
+                        }}
+                        onClick={() => {
+                          void criar();
+                        }}
                         className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-medium hover:bg-muted ${destaque === sugestoes.length ? "bg-muted" : ""}`}
                       >
                         {salvando ? <Spinner className="size-4" /> : <Plus className="size-4 text-accent" />}
