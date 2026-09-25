@@ -1,13 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent as TeclaReact } from "react";
 import { createPortal } from "react-dom";
 import { Plus, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  encontrarEquivalente,
-  normalizarMateria,
-  sugerirMaterias,
-  type Materia,
-} from "@/lib/materias";
+import { encontrarEquivalente, normalizarMateria, sugerirMaterias, type Materia } from "@/lib/materias";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/Spinner";
 
@@ -27,7 +22,9 @@ export function SeletorDeMateria({ selecionadas, aoMudar, multiplo = true, rotul
   const [erro, setErro] = useState<string | null>(null);
   const caixa = useRef<HTMLDivElement>(null);
   const campo = useRef<HTMLInputElement>(null);
+  const lista = useRef<HTMLDivElement>(null);
   const [posicao, setPosicao] = useState({ top: 0, left: 0, width: 0 });
+  const [destaque, setDestaque] = useState(-1);
 
   useEffect(() => {
     let ativo = true;
@@ -70,20 +67,44 @@ export function SeletorDeMateria({ selecionadas, aoMudar, multiplo = true, rotul
 
   useEffect(() => {
     function fora(e: MouseEvent) {
-      if (caixa.current && !caixa.current.contains(e.target as Node)) setAberto(false);
+      const alvo = e.target as Node;
+      // A lista fica num portal (fora da "caixa"), então cliques nela não contam como "fora".
+      if (caixa.current?.contains(alvo) || lista.current?.contains(alvo)) return;
+      setAberto(false);
     }
     document.addEventListener("mousedown", fora);
     return () => document.removeEventListener("mousedown", fora);
   }, []);
 
   const sugestoes = useMemo(
-    () =>
-      sugerirMaterias(todas, busca).filter((m) => !selecionadas.some((s) => s.id === m.id)),
+    () => sugerirMaterias(todas, busca).filter((m) => !selecionadas.some((s) => s.id === m.id)),
     [todas, busca, selecionadas],
   );
 
   const equivalente = encontrarEquivalente(todas, busca);
   const podeCriar = normalizarMateria(busca).length > 1 && !equivalente;
+  const totalOpcoes = sugestoes.length + (podeCriar ? 1 : 0);
+
+  useEffect(() => {
+    setDestaque(-1);
+  }, [busca, aberto]);
+
+  function aoTeclar(e: TeclaReact<HTMLInputElement>) {
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setAberto(true);
+      if (totalOpcoes > 0) setDestaque((d) => (d + 1) % totalOpcoes);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      if (totalOpcoes > 0) setDestaque((d) => (d <= 0 ? totalOpcoes - 1 : d - 1));
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      if (destaque >= 0 && destaque < sugestoes.length) escolher(sugestoes[destaque]);
+      else if (destaque === sugestoes.length && podeCriar) void criar();
+      else if (equivalente && !selecionadas.some((s) => s.id === equivalente.id)) escolher(equivalente);
+      else if (sugestoes.length === 1) escolher(sugestoes[0]);
+    }
+  }
 
   function escolher(materia: Materia) {
     setErro(null);
@@ -162,56 +183,62 @@ export function SeletorDeMateria({ selecionadas, aoMudar, multiplo = true, rotul
             setBusca(e.target.value);
             setAberto(true);
           }}
+          onKeyDown={aoTeclar}
           placeholder={multiplo ? "Buscar ou adicionar matéria" : "Buscar matéria"}
           autoComplete="off"
         />
-        {aberto && typeof document !== "undefined" && createPortal(
-          <div
-            className="fixed z-[100] overflow-hidden rounded-[8px] border border-border bg-card"
-            style={{ top: posicao.top, left: posicao.left, width: posicao.width }}
-          >
-            {carregando ? (
-              <div className="flex items-center gap-2 p-3 text-sm text-muted-foreground">
-                <Spinner className="size-4" /> Carregando matérias
-              </div>
-            ) : (
-              <ul className="max-h-56 overflow-auto">
-                {sugestoes.map((m) => (
-                  <li key={m.id}>
-                    <button
-                      type="button"
-                      onClick={() => escolher(m)}
-                      className="w-full px-3 py-2 text-left text-sm hover:bg-muted"
-                    >
-                      {m.nome}
-                    </button>
-                  </li>
-                ))}
-                {equivalente && sugestoes.length === 0 && (
-                  <li className="px-3 py-2 text-sm text-muted-foreground">Essa matéria já está escolhida.</li>
-                )}
-                {podeCriar && (
-                  <li>
-                    <button
-                      type="button"
-                      onClick={criar}
-                      className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-medium hover:bg-muted"
-                    >
-                      {salvando ? <Spinner className="size-4" /> : <Plus className="size-4 text-accent" />}
-                      Criar matéria “{busca.trim()}”
-                    </button>
-                  </li>
-                )}
-                {!podeCriar && sugestoes.length === 0 && !equivalente && (
-                  <li className="px-3 py-2 text-sm text-muted-foreground">
-                    Digite o nome da matéria para buscar ou criar.
-                  </li>
-                )}
-              </ul>
-            )}
-          </div>,
-          document.body,
-        )}
+        {aberto &&
+          typeof document !== "undefined" &&
+          createPortal(
+            <div
+              ref={lista}
+              className="fixed z-[100] overflow-hidden rounded-[8px] border border-border bg-card"
+              style={{ top: posicao.top, left: posicao.left, width: posicao.width }}
+            >
+              {carregando ? (
+                <div className="flex items-center gap-2 p-3 text-sm text-muted-foreground">
+                  <Spinner className="size-4" /> Carregando matérias
+                </div>
+              ) : (
+                <ul className="max-h-60 overflow-y-auto overscroll-contain">
+                  {sugestoes.map((m, i) => (
+                    <li key={m.id}>
+                      <button
+                        type="button"
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => escolher(m)}
+                        className={`w-full px-3 py-2 text-left text-sm hover:bg-muted ${destaque === i ? "bg-muted" : ""}`}
+                      >
+                        {m.nome}
+                      </button>
+                    </li>
+                  ))}
+                  {equivalente && sugestoes.length === 0 && (
+                    <li className="px-3 py-2 text-sm text-muted-foreground">Essa matéria já está escolhida.</li>
+                  )}
+                  {podeCriar && (
+                    <li>
+                      <button
+                        type="button"
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={criar}
+                        className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-medium hover:bg-muted ${destaque === sugestoes.length ? "bg-muted" : ""}`}
+                      >
+                        {salvando ? <Spinner className="size-4" /> : <Plus className="size-4 text-accent" />}
+                        Criar matéria “{busca.trim()}”
+                      </button>
+                    </li>
+                  )}
+                  {!podeCriar && sugestoes.length === 0 && !equivalente && (
+                    <li className="px-3 py-2 text-sm text-muted-foreground">
+                      Digite o nome da matéria para buscar ou criar.
+                    </li>
+                  )}
+                </ul>
+              )}
+            </div>,
+            document.body,
+          )}
       </div>
       {erro && <p className="text-sm text-destructive">{erro}</p>}
     </div>
