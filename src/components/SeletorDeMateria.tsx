@@ -104,10 +104,11 @@ export function SeletorDeMateria({ selecionadas, aoMudar, multiplo = true, rotul
       if (totalOpcoes > 0) setDestaque((d) => (d <= 0 ? totalOpcoes - 1 : d - 1));
     } else if (e.key === "Enter") {
       e.preventDefault();
-      if (destaque >= 0 && destaque < sugestoes.length) escolher(sugestoes[destaque]);
+      const alvo = sugestoes[destaque];
+      if (alvo) escolher(alvo);
       else if (destaque === sugestoes.length && podeCriar) void criar();
       else if (equivalente && !selecionadas.some((s) => s.id === equivalente.id)) escolher(equivalente);
-      else if (sugestoes.length === 1) escolher(sugestoes[0]);
+      else if (sugestoes.length === 1 && sugestoes[0]) escolher(sugestoes[0]);
     }
   }
 
