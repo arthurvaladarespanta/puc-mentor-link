@@ -28,8 +28,7 @@ export function encontrarEquivalente(
 }
 
 export type ResultadoMateria =
-  | { acao: "usar_existente"; materia: Materia }
-  | { acao: "criar"; nome: string; nome_normalizado: string };
+  { acao: "usar_existente"; materia: Materia } | { acao: "criar"; nome: string; nome_normalizado: string };
 
 /** Decide entre reaproveitar uma matéria existente ou criar uma nova. */
 export function encontrarOuCriar(
@@ -45,7 +44,7 @@ export function encontrarOuCriar(
 export function sugerirMaterias(
   materias: Pick<Materia, "id" | "nome" | "nome_normalizado">[],
   texto: string,
-  limite = 6,
+  limite = 50,
 ): Materia[] {
   const alvo = normalizarMateria(texto);
   if (!alvo) return materias.slice(0, limite) as Materia[];
